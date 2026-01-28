@@ -1,0 +1,134 @@
+# Arabic Translation File
+# Language: Arabic (ar)
+# Source: English (en)
+
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ar\n"
+
+# Basic Greetings
+
+msgid "Hello"
+msgstr "مرحبا"
+
+msgid "Hello {name}"
+msgstr "مرحبا {name}"
+
+msgid "Hello {name}, age {age}"
+msgstr "مرحبا {name}، عمرك {age}"
+
+msgid "Hello {name} from {city}"
+msgstr "مرحبا {name} من {city}"
+
+msgid "Goodbye"
+msgstr "مع السلامة"
+
+# Context Examples
+
+msgctxt "door"
+msgid "Open"
+msgstr "افتح"
+
+msgctxt "file"
+msgid "Open"
+msgstr "فتح ملف"
+
+msgctxt "door"
+msgid "Close"
+msgstr "أغلق"
+
+msgctxt "file"
+msgid "Close"
+msgstr "إغلاق ملف"
+
+# Common Actions
+
+msgid "Save"
+msgstr "حفظ"
+
+msgid "Cancel"
+msgstr "إلغاء"
+
+msgid "OK"
+msgstr "موافق"
+
+msgid "Yes"
+msgstr "نعم"
+
+msgid "No"
+msgstr "لا"
+
+msgid "Back"
+msgstr "رجوع"
+
+msgid "Next"
+msgstr "التالي"
+
+msgid "Previous"
+msgstr "السابق"
+
+# Messages
+
+msgid "Saved successfully"
+msgstr "تم الحفظ بنجاح"
+
+msgid "An error occurred"
+msgstr "حدث خطأ"
+
+msgid "Please try again"
+msgstr "يرجى المحاولة مرة أخرى"
+
+msgid "Loading..."
+msgstr "جاري التحميل..."
+
+# Game Specific
+
+msgid "Level {level}"
+msgstr "المستوى {level}"
+
+msgid "Score: {score}"
+msgstr "النقاط: {score}"
+
+msgid "Time remaining: {time}"
+msgstr "الوقت المتبقي: {time}"
+
+msgid "Player {name} joined"
+msgstr "انضم اللاعب {name}"
+
+msgid "Player {name} left"
+msgstr "غادر اللاعب {name}"
+
+# Menu Items
+
+msgid "Start Game"
+msgstr "بدء اللعبة"
+
+msgid "Options"
+msgstr "الخيارات"
+
+msgid "Help"
+msgstr "المساعدة"
+
+msgid "Exit"
+msgstr "خروج"
+
+# Settings
+
+msgid "Settings"
+msgstr "الإعدادات"
+
+msgid "Language"
+msgstr "اللغة"
+
+msgid "Sound"
+msgstr "الصوت"
+
+msgid "Volume"
+msgstr "مستوى الصوت"
+
+msgid "Mute"
+msgstr "كتم الصوت"
+
+msgid "Unmute"
+msgstr "تشغيل الصوت"

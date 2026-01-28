@@ -1,0 +1,133 @@
+# English Translation File (Source Language)
+# Language: English (en)
+
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+# Basic Greetings
+
+msgid "Hello"
+msgstr "Hello"
+
+msgid "Hello {name}"
+msgstr "Hello {name}"
+
+msgid "Hello {name}, age {age}"
+msgstr "Hello {name}, age {age}"
+
+msgid "Hello {name} from {city}"
+msgstr "Hello {name} from {city}"
+
+msgid "Goodbye"
+msgstr "Goodbye"
+
+# Context Examples
+
+msgctxt "door"
+msgid "Open"
+msgstr "Open"
+
+msgctxt "file"
+msgid "Open"
+msgstr "Open File"
+
+msgctxt "door"
+msgid "Close"
+msgstr "Close"
+
+msgctxt "file"
+msgid "Close"
+msgstr "Close File"
+
+# Common Actions
+
+msgid "Save"
+msgstr "Save"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Yes"
+msgstr "Yes"
+
+msgid "No"
+msgstr "No"
+
+msgid "Back"
+msgstr "Back"
+
+msgid "Next"
+msgstr "Next"
+
+msgid "Previous"
+msgstr "Previous"
+
+# Messages
+
+msgid "Saved successfully"
+msgstr "Saved successfully"
+
+msgid "An error occurred"
+msgstr "An error occurred"
+
+msgid "Please try again"
+msgstr "Please try again"
+
+msgid "Loading..."
+msgstr "Loading..."
+
+# Game Specific
+
+msgid "Level {level}"
+msgstr "Level {level}"
+
+msgid "Score: {score}"
+msgstr "Score: {score}"
+
+msgid "Time remaining: {time}"
+msgstr "Time remaining: {time}"
+
+msgid "Player {name} joined"
+msgstr "Player {name} joined"
+
+msgid "Player {name} left"
+msgstr "Player {name} left"
+
+# Menu Items
+
+msgid "Start Game"
+msgstr "Start Game"
+
+msgid "Options"
+msgstr "Options"
+
+msgid "Help"
+msgstr "Help"
+
+msgid "Exit"
+msgstr "Exit"
+
+# Settings
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Language"
+msgstr "Language"
+
+msgid "Sound"
+msgstr "Sound"
+
+msgid "Volume"
+msgstr "Volume"
+
+msgid "Mute"
+msgstr "Mute"
+
+msgid "Unmute"
+msgstr "Unmute"

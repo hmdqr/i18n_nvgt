@@ -1,0 +1,410 @@
+/*
+NVGT i18n - Offline Test Suite
+Comprehensive test for the standalone i18n translation system.
+Tests all features: loading, translating, variables, context, and language switching.
+*/
+
+#include "i18n.nvgt"
+
+// Test counters
+int tests_passed = 0;
+int tests_failed = 0;
+string[] failed_tests;
+
+void main() {
+    show_window("i18n Offline Test Suite");
+    
+    alert("i18n Test Suite", "This will run all offline translation tests.\n\nPress Enter to start.");
+    
+    // Initialize
+    if (!init_test_environment()) {
+        alert("Error", "Failed to initialize test environment.\nMake sure 'lang' folder exists with .po files.");
+        return;
+    }
+    
+    // Run all test categories
+    test_initialization();
+    test_basic_translation();
+    test_variable_substitution();
+    test_context_translation();
+    test_language_switching();
+    test_edge_cases();
+    test_performance();
+    
+    // Show results
+    show_results();
+    
+    // Interactive mode
+    interactive_mode();
+}
+
+bool init_test_environment() {
+    log("Initializing test environment...");
+    
+    if (!i18n_init("lang", "en")) {
+        return false;
+    }
+    
+    // Try to load Arabic
+    i18n_load("ar");
+    
+    log("Loaded languages: " + array_join(i18n_get_loaded_languages(), ", "));
+    return true;
+}
+
+// Test Categories
+
+void test_initialization() {
+    log("\n=== Testing Initialization ===");
+    
+    // Test 1: Check default language
+    assert_equals("Default language", i18n_get_language(), "en");
+    
+    // Test 2: Check languages loaded
+    string[] langs = i18n_get_loaded_languages();
+    assert_true("At least one language loaded", langs.length() >= 1);
+    
+    // Test 3: Check translation count
+    assert_true("Has translations", i18n_count() > 0);
+}
+
+void test_basic_translation() {
+    log("\n=== Testing Basic Translation ===");
+    
+    i18n_set_language("en");
+    
+    // Test 1: Simple translation
+    assert_equals("Translate 'Hello'", _("Hello"), "Hello");
+    
+    // Test 2: Translation exists
+    assert_true("Has 'Hello'", i18n_has("Hello"));
+    
+    // Test 3: Missing translation returns original
+    assert_equals("Missing key returns original", _("NonExistentKey123"), "NonExistentKey123");
+    
+    // Test 4: Has returns false for missing
+    assert_false("Missing key not found", i18n_has("NonExistentKey123"));
+    
+    // Test 5: Empty string
+    assert_equals("Empty string", _(""), "");
+}
+
+void test_variable_substitution() {
+    log("\n=== Testing Variable Substitution ===");
+    
+    i18n_set_language("en");
+    
+    // Test 1: Single variable
+    string result1 = _f("Hello {name}", "name", "Ali");
+    assert_true("Single variable contains name", result1.find("Ali") >= 0);
+    
+    // Test 2: Two variables
+    string result2 = _f2("Hello {name}, score {score}", "name", "Sara", "score", "100");
+    assert_true("Two vars - has name", result2.find("Sara") >= 0);
+    assert_true("Two vars - has score", result2.find("100") >= 0);
+    
+    // Test 3: Three variables
+    string result3 = _f3("Player {name} level {level} hp {hp}", "name", "Omar", "level", "5", "hp", "100");
+    assert_true("Three vars - has name", result3.find("Omar") >= 0);
+    assert_true("Three vars - has level", result3.find("5") >= 0);
+    assert_true("Three vars - has hp", result3.find("100") >= 0);
+    
+    // Test 4: Dictionary variables
+    dictionary@ vars = dictionary();
+    vars.set("item", "Sword");
+    vars.set("count", "3");
+    string result4 = _fd("You have {count} {item}", @vars);
+    assert_true("Dict vars - has count", result4.find("3") >= 0);
+    assert_true("Dict vars - has item", result4.find("Sword") >= 0);
+    
+    // Test 5: Missing variable - placeholder stays
+    string result5 = _f("Hello {name}", "wrong_key", "value");
+    assert_true("Missing var keeps placeholder", result5.find("{name}") >= 0);
+}
+
+void test_context_translation() {
+    log("\n=== Testing Context Translation ===");
+    
+    i18n_set_language("en");
+    
+    // Test 1: Same word, different context
+    string open_door = _("Open", "door");
+    string open_file = _("Open", "file");
+    
+    // In English they might be the same, but context system should work
+    assert_true("Context door works", open_door.length() > 0);
+    assert_true("Context file works", open_file.length() > 0);
+    
+    // Test 2: Context with non-existent key
+    string missing = _("MissingContext123", "any_context");
+    assert_equals("Missing context returns original", missing, "MissingContext123");
+}
+
+void test_language_switching() {
+    log("\n=== Testing Language Switching ===");
+    
+    // Test 1: Switch to English
+    i18n_set_language("en");
+    assert_equals("Switch to English", i18n_get_language(), "en");
+    string hello_en = _("Hello");
+    
+    // Test 2: Switch to Arabic (if loaded)
+    string[] langs = i18n_get_loaded_languages();
+    bool has_arabic = false;
+    for (uint i = 0; i < langs.length(); i++) {
+        if (langs[i] == "ar") has_arabic = true;
+    }
+    
+    if (has_arabic) {
+        i18n_set_language("ar");
+        assert_equals("Switch to Arabic", i18n_get_language(), "ar");
+        string hello_ar = _("Hello");
+        
+        // Arabic should be different from English
+        assert_true("Arabic translation different", hello_ar != hello_en || hello_ar == "مرحبا");
+        
+        // Switch back
+        i18n_set_language("en");
+    } else {
+        log("  Skipping Arabic tests - not loaded");
+    }
+    
+    // Test 3: Invalid language keeps current
+    string before = i18n_get_language();
+    i18n_set_language("invalid_lang_xyz");
+    assert_equals("Invalid lang keeps current", i18n_get_language(), before);
+}
+
+void test_edge_cases() {
+    log("\n=== Testing Edge Cases ===");
+    
+    i18n_set_language("en");
+    
+    // Test 1: Very long key
+    string long_key = "";
+    for (int i = 0; i < 100; i++) long_key += "x";
+    string long_result = _(long_key);
+    assert_equals("Long key returns itself", long_result, long_key);
+    
+    // Test 2: Special characters in key
+    assert_true("Key with space works", _("New Game").length() > 0);
+    
+    // Test 3: Numeric values in variables
+    string num_result = _f("Score: {score}", "score", "999999");
+    assert_true("Numeric variable works", num_result.find("999999") >= 0);
+    
+    // Test 4: Empty variable value
+    string empty_var = _f("Hello {name}", "name", "");
+    assert_true("Empty variable removes placeholder", empty_var.find("{name}") < 0);
+    
+    // Test 5: Unicode in variables
+    string unicode_result = _f("Player: {name}", "name", "محمد");
+    assert_true("Unicode variable works", unicode_result.find("محمد") >= 0);
+}
+
+void test_performance() {
+    log("\n=== Testing Performance ===");
+    
+    i18n_set_language("en");
+    
+    // Test 1: Many translations in a row
+    timer t;
+    int iterations = 1000;
+    
+    for (int i = 0; i < iterations; i++) {
+        _("Hello");
+    }
+    
+    uint64 time_basic = t.elapsed;
+    assert_true("1000 basic translations < 100ms", time_basic < 100);
+    log("  " + iterations + " basic translations: " + time_basic + "ms");
+    
+    // Test 2: Variable substitution performance
+    t.restart();
+    for (int i = 0; i < iterations; i++) {
+        _f("Hello {name}", "name", "Test");
+    }
+    
+    uint64 time_var = t.elapsed;
+    assert_true("1000 variable translations < 200ms", time_var < 200);
+    log("  " + iterations + " variable translations: " + time_var + "ms");
+    
+    // Test 3: Language switch performance
+    t.restart();
+    for (int i = 0; i < 100; i++) {
+        i18n_set_language("en");
+    }
+    
+    uint64 time_switch = t.elapsed;
+    assert_true("100 language switches < 50ms", time_switch < 50);
+    log("  100 language switches: " + time_switch + "ms");
+}
+
+// Test Utilities
+
+void assert_equals(string name, string actual, string expected) {
+    if (actual == expected) {
+        tests_passed++;
+        log("  PASS: " + name);
+    } else {
+        tests_failed++;
+        failed_tests.insert_last(name + " (expected '" + expected + "', got '" + actual + "')");
+        log("  FAIL: " + name + " - expected '" + expected + "', got '" + actual + "'");
+    }
+}
+
+void assert_true(string name, bool condition) {
+    if (condition) {
+        tests_passed++;
+        log("  PASS: " + name);
+    } else {
+        tests_failed++;
+        failed_tests.insert_last(name);
+        log("  FAIL: " + name);
+    }
+}
+
+void assert_false(string name, bool condition) {
+    assert_true(name, !condition);
+}
+
+void log(string message) {
+    // Could write to file or console
+    // For now just accumulate for display
+}
+
+string array_join(string[]@ arr, string sep) {
+    string result = "";
+    for (uint i = 0; i < arr.length(); i++) {
+        if (i > 0) result += sep;
+        result += arr[i];
+    }
+    return result;
+}
+
+// Results Display
+
+void show_results() {
+    int total = tests_passed + tests_failed;
+    int percent = total > 0 ? (tests_passed * 100) / total : 0;
+    
+    string results = "Tests Run: " + total + "\n";
+    results += "Passed: " + tests_passed + "\n";
+    results += "Failed: " + tests_failed + "\n";
+    results += "Success Rate: " + percent + "%\n";
+    
+    if (tests_failed > 0) {
+        results += "\nFailed Tests:\n";
+        for (uint i = 0; i < failed_tests.length(); i++) {
+            results += "- " + failed_tests[i] + "\n";
+        }
+    }
+    
+    string title = tests_failed == 0 ? "All Tests Passed!" : "Some Tests Failed";
+    alert(title, results);
+}
+
+// Interactive Mode
+
+void interactive_mode() {
+    alert("Interactive Mode", "Now entering interactive mode.\n\n" +
+        "1-2: Switch language (1=English, 2=Arabic)\n" +
+        "T: Show translation demo\n" +
+        "V: Show variable demo\n" +
+        "I: Show system info\n" +
+        "R: Re-run all tests\n" +
+        "Escape: Exit");
+    
+    while (true) {
+        wait(5);
+        
+        if (key_pressed(KEY_ESCAPE)) {
+            break;
+        }
+        else if (key_pressed(KEY_1)) {
+            i18n_set_language("en");
+            screen_reader_speak("English", true);
+        }
+        else if (key_pressed(KEY_2)) {
+            i18n_set_language("ar");
+            screen_reader_speak("Arabic", true);
+        }
+        else if (key_pressed(KEY_T)) {
+            demo_translations();
+        }
+        else if (key_pressed(KEY_V)) {
+            demo_variables();
+        }
+        else if (key_pressed(KEY_I)) {
+            show_info();
+        }
+        else if (key_pressed(KEY_R)) {
+            // Reset counters
+            tests_passed = 0;
+            tests_failed = 0;
+            failed_tests.resize(0);
+            
+            // Re-run tests
+            test_initialization();
+            test_basic_translation();
+            test_variable_substitution();
+            test_context_translation();
+            test_language_switching();
+            test_edge_cases();
+            test_performance();
+            
+            show_results();
+        }
+    }
+    
+    alert("", _("Goodbye"));
+}
+
+void demo_translations() {
+    string current = i18n_get_language();
+    
+    string demo = "Current Language: " + current + "\n\n";
+    demo += "Hello = " + _("Hello") + "\n";
+    demo += "Goodbye = " + _("Goodbye") + "\n";
+    demo += "Yes = " + _("Yes") + "\n";
+    demo += "No = " + _("No") + "\n";
+    demo += "Settings = " + _("Settings") + "\n";
+    demo += "New Game = " + _("New Game") + "\n";
+    demo += "Load Game = " + _("Load Game") + "\n";
+    
+    alert("Translation Demo - " + current, demo);
+}
+
+void demo_variables() {
+    string demo = "Variable Substitution Examples:\n\n";
+    
+    demo += "1. Single variable:\n";
+    demo += "   _f(\"Hello {name}\", \"name\", \"Ali\")\n";
+    demo += "   Result: " + _f("Hello {name}", "name", "Ali") + "\n\n";
+    
+    demo += "2. Two variables:\n";
+    demo += "   _f2(\"Score: {score} / {max}\", ...)\n";
+    demo += "   Result: " + _f2("Score: {score} / {max}", "score", "85", "max", "100") + "\n\n";
+    
+    demo += "3. Three variables:\n";
+    demo += "   _f3(\"Player {name} at ({x},{y})\", ...)\n";
+    demo += "   Result: " + _f3("Player {name} at ({x},{y})", "name", "Omar", "x", "10", "y", "20") + "\n\n";
+    
+    demo += "4. Dictionary:\n";
+    demo += "   @vars with item=Sword, count=3\n";
+    dictionary@ vars = dictionary();
+    vars.set("item", "Sword");
+    vars.set("count", "3");
+    demo += "   Result: " + _fd("You have {count} {item}", @vars) + "\n";
+    
+    alert("Variable Demo", demo);
+}
+
+void show_info() {
+    string info = "i18n System Information\n\n";
+    info += "Current Language: " + i18n_get_language() + "\n";
+    info += "Loaded Languages: " + array_join(i18n_get_loaded_languages(), ", ") + "\n";
+    info += "Translation Count: " + i18n_count() + "\n";
+    
+    alert("System Info", info);
+}

@@ -1,0 +1,561 @@
+/*
+NVGT i18n - Internationalization System (Offline Version)
+
+A complete translation system supporting PO files (gettext format)
+with context, variables, and runtime language switching.
+
+Author: HmdQr
+Version: 1.0.1
+Date: 2026-01-28
+License: MIT
+
+Usage:
+
+#include "nvgt_i18n/i18n.nvgt"
+
+void main() {
+    // Initialize the system
+    i18n_init("lang", "ar");  // lang folder, default language
+    
+    // Load another language
+    i18n_load("en");
+    
+    // Change language
+    i18n_set_language("en");
+    
+    // Translation
+    alert("", _("Hello"));                           // Simple translation
+    alert("", _("Open", "door"));                    // Translation with context
+    alert("", _f("Hello {name}", "name", "Ahmed"));  // Translation with variable
+}
+*/
+
+// State Variables (Internal)
+
+string i18n_current_language = "";
+string i18n_default_language = "";
+string i18n_lang_path = "lang";
+dictionary@ i18n_translations = dictionary();
+string[] i18n_loaded_languages;
+bool i18n_initialized = false;
+bool i18n_debug_mode = false;
+bool i18n_warn_missing = true;
+
+// Initialization
+
+/*
+Initialize the translation system
+@param lang_path: Path to language files folder
+@param default_lang: Default/source language code
+@return: true if initialization succeeded
+*/
+bool i18n_init(string lang_path = "lang", string default_lang = "ar") {
+    i18n_lang_path = lang_path;
+    i18n_default_language = default_lang;
+    i18n_current_language = default_lang;
+    
+    @i18n_translations = dictionary();
+    i18n_loaded_languages.resize(0);
+    
+    bool loaded = i18n_load(default_lang);
+    
+    if (loaded) {
+        i18n_initialized = true;
+    }
+    
+    return loaded;
+}
+
+/*
+Load a language file
+@param lang_code: Language code (e.g., en, ar)
+@return: true if loading succeeded
+*/
+bool i18n_load(string lang_code) {
+    // Check if already loaded
+    for (uint i = 0; i < i18n_loaded_languages.length(); i++) {
+        if (i18n_loaded_languages[i] == lang_code) {
+            return true;
+        }
+    }
+    
+    string file_path = i18n_lang_path + "/" + lang_code + ".po";
+    string content = i18n_read_file(file_path);
+    
+    if (content.empty()) {
+        return false;
+    }
+    
+    dictionary@ lang_dict = i18n_parse_po(content);
+    
+    if (@lang_dict == null) {
+        return false;
+    }
+    
+    i18n_translations.set(lang_code, @lang_dict);
+    i18n_loaded_languages.insert_last(lang_code);
+    
+    return true;
+}
+
+/*
+Change the current language
+@param lang_code: Language code
+@return: true if change succeeded
+*/
+bool i18n_set_language(string lang_code) {
+    bool is_loaded = false;
+    for (uint i = 0; i < i18n_loaded_languages.length(); i++) {
+        if (i18n_loaded_languages[i] == lang_code) {
+            is_loaded = true;
+            break;
+        }
+    }
+    
+    if (!is_loaded) {
+        if (!i18n_load(lang_code)) {
+            return false;
+        }
+    }
+    
+    i18n_current_language = lang_code;
+    return true;
+}
+
+/*
+Get the current language code
+*/
+string i18n_get_language() {
+    return i18n_current_language;
+}
+
+/*
+Get list of loaded languages
+*/
+string[] i18n_get_loaded_languages() {
+    return i18n_loaded_languages;
+}
+
+// Translation Functions
+
+/*
+Translate a text
+@param text: Text to translate
+@param context: Context (optional)
+@return: Translated text or original if not found
+*/
+string _(string text, string context = "") {
+    if (!i18n_initialized) {
+        return text;
+    }
+    
+    string key = text;
+    if (!context.empty()) {
+        key = context + "\x04" + text;
+    }
+    
+    string result = i18n_lookup(i18n_current_language, key);
+    
+    if (!result.empty()) {
+        return result;
+    }
+    
+    if (i18n_current_language != i18n_default_language) {
+        result = i18n_lookup(i18n_default_language, key);
+        if (!result.empty()) {
+            return result;
+        }
+    }
+    
+    return text;
+}
+
+/*
+Translate text with one variable substitution
+*/
+string _f(string text, string var_name, string var_value) {
+    string translated = _(text);
+    return i18n_replace_var(translated, var_name, var_value);
+}
+
+/*
+Translate text with two variable substitutions
+*/
+string _f2(string text, string var1_name, string var1_value, string var2_name, string var2_value) {
+    string translated = _(text);
+    translated = i18n_replace_var(translated, var1_name, var1_value);
+    translated = i18n_replace_var(translated, var2_name, var2_value);
+    return translated;
+}
+
+/*
+Translate text with three variable substitutions
+*/
+string _f3(string text, string var1_name, string var1_value, string var2_name, string var2_value, string var3_name, string var3_value) {
+    string translated = _(text);
+    translated = i18n_replace_var(translated, var1_name, var1_value);
+    translated = i18n_replace_var(translated, var2_name, var2_value);
+    translated = i18n_replace_var(translated, var3_name, var3_value);
+    return translated;
+}
+
+/*
+Translate text with dictionary of variables
+*/
+string _fd(string text, dictionary@ vars) {
+    string translated = _(text);
+    
+    if (@vars == null) {
+        return translated;
+    }
+    
+    string[]@ keys = vars.get_keys();
+    
+    for (uint i = 0; i < keys.length(); i++) {
+        string var_value;
+        if (vars.get(keys[i], var_value)) {
+            translated = i18n_replace_var(translated, keys[i], var_value);
+        }
+    }
+    
+    return translated;
+}
+
+/*
+Translate with context (shorthand)
+*/
+string _c(string context, string text) {
+    return _(text, context);
+}
+
+// Helper Functions
+
+string i18n_lookup(string lang_code, string key) {
+    dictionary@ lang_dict;
+    if (!i18n_translations.get(lang_code, @lang_dict)) {
+        return "";
+    }
+    
+    if (@lang_dict == null) {
+        return "";
+    }
+    
+    string result;
+    if (lang_dict.get(key, result)) {
+        return result;
+    }
+    
+    return "";
+}
+
+string i18n_replace_var(string text, string var_name, string var_value) {
+    string placeholder = "{" + var_name + "}";
+    return i18n_string_replace_all(text, placeholder, var_value);
+}
+
+string i18n_string_replace_all(string text, string find_str, string replace_str) {
+    if (find_str.empty()) return text;
+    
+    string result = "";
+    int last_pos = 0;
+    int pos = text.find(find_str);
+    
+    while (pos >= 0) {
+        if (pos > last_pos) {
+            result += text.substr(last_pos, pos - last_pos);
+        }
+        
+        result += replace_str;
+        last_pos = pos + find_str.length();
+        
+        if (last_pos < int(text.length())) {
+            pos = text.find(find_str, last_pos);
+        } else {
+            pos = -1;
+        }
+    }
+    
+    if (last_pos < int(text.length())) {
+        result += text.substr(last_pos);
+    }
+    
+    return result;
+}
+
+string i18n_read_file(string path) {
+    file f;
+    if (!f.open(path, "rb")) {
+        return "";
+    }
+    string content = f.read();
+    f.close();
+    return content;
+}
+
+// PO Parser
+
+dictionary@ i18n_parse_po(string content) {
+    dictionary@ result = dictionary();
+    
+    string[]@ lines = content.split("\n");
+    
+    if (@lines == null || lines.length() == 0) {
+        return result;
+    }
+    
+    string current_msgctxt = "";
+    string current_msgid = "";
+    string current_msgstr = "";
+    string current_type = "";
+    bool in_entry = false;
+    
+    for (uint i = 0; i < lines.length(); i++) {
+        string line = i18n_trim(lines[i]);
+        
+        if (line.empty()) {
+            if (in_entry && !current_msgid.empty()) {
+                string key = current_msgid;
+                if (!current_msgctxt.empty()) {
+                    key = current_msgctxt + "\x04" + current_msgid;
+                }
+                result.set(key, current_msgstr);
+            }
+            
+            current_msgctxt = "";
+            current_msgid = "";
+            current_msgstr = "";
+            current_type = "";
+            in_entry = false;
+            continue;
+        }
+        
+        string first_char = line.substr(0, 1);
+        
+        if (first_char == "#") {
+            continue;
+        }
+        
+        if (i18n_starts_with(line, "msgctxt ")) {
+            current_type = "msgctxt";
+            current_msgctxt = i18n_extract_quoted(line, 8);
+            in_entry = true;
+        }
+        else if (i18n_starts_with(line, "msgid ")) {
+            current_type = "msgid";
+            current_msgid = i18n_extract_quoted(line, 6);
+            in_entry = true;
+        }
+        else if (i18n_starts_with(line, "msgstr ")) {
+            current_type = "msgstr";
+            current_msgstr = i18n_extract_quoted(line, 7);
+            in_entry = true;
+        }
+        else if (first_char == "\"") {
+            string continued = i18n_extract_quoted(line, 0);
+            if (current_type == "msgctxt") {
+                current_msgctxt += continued;
+            }
+            else if (current_type == "msgid") {
+                current_msgid += continued;
+            }
+            else if (current_type == "msgstr") {
+                current_msgstr += continued;
+            }
+        }
+    }
+    
+    if (in_entry && !current_msgid.empty()) {
+        string key = current_msgid;
+        if (!current_msgctxt.empty()) {
+            key = current_msgctxt + "\x04" + current_msgid;
+        }
+        result.set(key, current_msgstr);
+    }
+    
+    return result;
+}
+
+string i18n_extract_quoted(string line, int start_offset) {
+    int first_quote = line.find("\"", start_offset);
+    
+    if (first_quote < 0) {
+        return "";
+    }
+    
+    int last_quote = -1;
+    for (int i = int(line.length()) - 1; i > first_quote; i--) {
+        string c = line.substr(i, 1);
+        if (c == "\"") {
+            int backslash_count = 0;
+            int j = i - 1;
+            while (j >= 0 && line.substr(j, 1) == "\\") {
+                backslash_count++;
+                j--;
+            }
+            if (backslash_count % 2 == 0) {
+                last_quote = i;
+                break;
+            }
+        }
+    }
+    
+    if (last_quote <= first_quote) {
+        return "";
+    }
+    
+    string extracted = line.substr(first_quote + 1, last_quote - first_quote - 1);
+    extracted = i18n_unescape(extracted);
+    
+    return extracted;
+}
+
+string i18n_unescape(string text) {
+    string result = "";
+    
+    int i = 0;
+    while (i < int(text.length())) {
+        string current_char = text.substr(i, 1);
+        
+        if (current_char == "\\" && i + 1 < int(text.length())) {
+            string next_char = text.substr(i + 1, 1);
+            
+            if (next_char == "n") {
+                result += "\n";
+                i += 2;
+                continue;
+            }
+            else if (next_char == "t") {
+                result += "\t";
+                i += 2;
+                continue;
+            }
+            else if (next_char == "r") {
+                result += "\r";
+                i += 2;
+                continue;
+            }
+            else if (next_char == "\"") {
+                result += "\"";
+                i += 2;
+                continue;
+            }
+            else if (next_char == "\\") {
+                result += "\\";
+                i += 2;
+                continue;
+            }
+        }
+        
+        result += current_char;
+        i++;
+    }
+    
+    return result;
+}
+
+bool i18n_starts_with(string text, string prefix) {
+    if (prefix.length() > text.length()) {
+        return false;
+    }
+    return text.substr(0, prefix.length()) == prefix;
+}
+
+string i18n_trim(string text) {
+    if (text.empty()) {
+        return "";
+    }
+    
+    int start = 0;
+    int end = text.length() - 1;
+    
+    while (start <= end) {
+        string c = text.substr(start, 1);
+        if (c == " " || c == "\t" || c == "\r" || c == "\n") {
+            start++;
+        } else {
+            break;
+        }
+    }
+    
+    while (end >= start) {
+        string c = text.substr(end, 1);
+        if (c == " " || c == "\t" || c == "\r" || c == "\n") {
+            end--;
+        } else {
+            break;
+        }
+    }
+    
+    if (start > end) {
+        return "";
+    }
+    
+    return text.substr(start, end - start + 1);
+}
+
+// Utility Functions
+
+void i18n_clear() {
+    @i18n_translations = dictionary();
+    i18n_loaded_languages.resize(0);
+    i18n_initialized = false;
+}
+
+void i18n_set_debug(bool enabled) {
+    i18n_debug_mode = enabled;
+}
+
+void i18n_set_warn_missing(bool enabled) {
+    i18n_warn_missing = enabled;
+}
+
+int i18n_count(string lang_code = "") {
+    if (lang_code.empty()) {
+        lang_code = i18n_current_language;
+    }
+    
+    dictionary@ lang_dict;
+    if (!i18n_translations.get(lang_code, @lang_dict)) {
+        return 0;
+    }
+    
+    if (@lang_dict == null) {
+        return 0;
+    }
+    
+    string[]@ keys = lang_dict.get_keys();
+    if (@keys == null) {
+        return 0;
+    }
+    
+    return keys.length();
+}
+
+bool i18n_has(string text, string context = "") {
+    string key = text;
+    if (!context.empty()) {
+        key = context + "\x04" + text;
+    }
+    
+    string result = i18n_lookup(i18n_current_language, key);
+    return !result.empty();
+}
+
+string[] i18n_get_keys(string lang_code = "") {
+    if (lang_code.empty()) {
+        lang_code = i18n_current_language;
+    }
+    
+    string[] empty_array;
+    
+    dictionary@ lang_dict;
+    if (!i18n_translations.get(lang_code, @lang_dict)) {
+        return empty_array;
+    }
+    
+    if (@lang_dict == null) {
+        return empty_array;
+    }
+    
+    return lang_dict.get_keys();
+}
