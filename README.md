@@ -163,3 +163,7 @@ MIT
 ## Author
 
 HmdQr
+
+## Disclaimer
+
+This project was developed with the assistance of GitHub Copilot powered by Claude Opus 4.5.
