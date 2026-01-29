@@ -167,3 +167,105 @@ msgstr "Mute"
 
 msgid "Unmute"
 msgstr "Unmute"
+
+# Gender Examples
+
+msgid "gender_greeting"
+msgstr "Hi, we found your gender and will show it in Arabic|Hi, we found your gender and will show it in Arabic"
+
+msgid "You won!"
+msgstr "You won!|You won!"
+
+msgid "You collected {item}"
+msgstr "You collected {item}|You collected {item}"
+
+# Plural Examples
+
+msgid "coin"
+msgstr "coin"
+
+msgid "coins_dual"
+msgstr "coins"
+
+msgid "coins_plural"
+msgstr "coins"
+
+# UI Translations
+
+msgid "Interactive Mode"
+msgstr "Interactive Mode"
+
+msgid "interactive_mode_instructions"
+msgstr "Now entering interactive mode.\n\n1-2: Switch language (1=English, 2=Arabic)\n3: Toggle missing translation warnings\nT: Show translation demo\nV: Show variable demo\nM: Gender demo - Male\nF: Gender demo - Female\nN: Plural demo - Arabic numbers\nI: Show system info\nR: Re-run all tests\nEscape: Exit"
+
+msgid "Language changed to English"
+msgstr "Language changed to English"
+
+msgid "Language changed to Arabic"
+msgstr "Language changed to Arabic"
+
+msgid "Warnings ON"
+msgstr "Warnings ON - Missing translations will be logged"
+
+msgid "Warnings OFF"
+msgstr "Warnings OFF"
+
+msgid "Missing Translation Warnings"
+msgstr "Missing Translation Warnings"
+
+msgid "System Info"
+msgstr "System Info"
+
+msgid "Current Language"
+msgstr "Current Language"
+
+msgid "Loaded Languages"
+msgstr "Loaded Languages"
+
+msgid "Translation Count"
+msgstr "Translation Count"
+
+msgid "Translation Demo"
+msgstr "Translation Demo"
+
+msgid "Variable Demo"
+msgstr "Variable Demo"
+
+msgid "Gender Demo"
+msgstr "Gender Demo"
+
+msgid "Male"
+msgstr "Male"
+
+msgid "Female"
+msgstr "Female"
+
+msgid "Greeting"
+msgstr "Greeting"
+
+msgid "Win Message"
+msgstr "Win Message"
+
+msgid "Collected Message"
+msgstr "Collected Message"
+
+msgid "You collected sword"
+msgstr "You collected sword"
+
+msgid "Plural Demo"
+msgstr "Plural Demo"
+
+msgid "Arabic Plural Rules"
+msgstr "Arabic Plural Rules"
+
+msgid "singular for 1 and 11+"
+msgstr "singular for 1 and 11+"
+
+msgid "dual for 2"
+msgstr "dual for 2"
+
+msgid "plural for 0 and 3-10"
+msgstr "plural for 0 and 3-10"
+
+msgid "Goodbye"
+msgstr "Goodbye"

@@ -1,0 +1,225 @@
+/*
+i18n Common Errors Demo
+This file demonstrates common mistakes new developers make
+when using the i18n translation system.
+Run this file to see error handling in action.
+Each section shows a common mistake and how the system handles it.
+*/
+
+#include "i18n.nvgt"
+
+void main() {
+    show_window("i18n Error Demos");
+    
+    screen_reader_speak("""Welcome to i18n Error Demos!
+Press numbers 1 through 9 to hear common mistakes.
+1: Using system without initialization.
+2: Wrong folder path.
+3: Non-existent language.
+4: Missing translation key.
+5: Wrong variable names.
+6: Gender format error.
+7: Missing plural forms.
+8: Warnings disabled.
+9: Correct usage example.
+Press Escape to exit.""", true);
+    
+    while (true) {
+        wait(5);
+        
+        if (key_pressed(KEY_ESCAPE)) break;
+        else if (key_pressed(KEY_1)) error_no_init();
+        else if (key_pressed(KEY_2)) error_wrong_path();
+        else if (key_pressed(KEY_3)) error_wrong_language();
+        else if (key_pressed(KEY_4)) error_missing_key();
+        else if (key_pressed(KEY_5)) error_wrong_variables();
+        else if (key_pressed(KEY_6)) error_gender_format();
+        else if (key_pressed(KEY_7)) error_plural_keys();
+        else if (key_pressed(KEY_8)) error_warnings_off();
+        else if (key_pressed(KEY_9)) show_correct_usage();
+    }
+}
+
+// Error 1: Using system without initialization
+void error_no_init() {
+    i18n_clear();
+    
+    string result = _("Hello");
+    
+    screen_reader_speak("""Error 1: No Initialization.
+Wrong code: string msg = underscore Hello.
+Problem: i18n_init was not called first!
+Result: """ + result + """. 
+The key is returned without translation.
+Solution: Call i18n_init with folder and default language before using translations.""", true);
+    
+    i18n_init("lang", "en");
+}
+
+// Error 2: Wrong folder path
+void error_wrong_path() {
+    i18n_clear();
+    
+    bool success = i18n_init("wrong_folder", "en");
+    
+    screen_reader_speak("""Error 2: Wrong Folder Path.
+Wrong code: i18n_init with wrong_folder.
+Problem: The folder wrong_folder does not exist!
+Result: Initialization """ + (success ? "succeeded, which is strange!" : "failed.") + """
+Solution: Make sure the lang folder exists and contains .po files.""", true);
+    
+    i18n_init("lang", "en");
+}
+
+// Error 3: Non-existent language
+void error_wrong_language() {
+    i18n_init("lang", "en");
+    
+    bool success = i18n_set_language("fr");
+    string current = i18n_get_language();
+    
+    screen_reader_speak("""Error 3: Non-existent Language.
+Wrong code: i18n_set_language french.
+Problem: There is no fr.po file in the lang folder!
+Result: Language change """ + (success ? "succeeded" : "failed") + """.
+Current language is still: """ + current + """.
+Available languages: English and Arabic.
+Solution: Create lang/fr.po file, or use an existing language.""", true);
+}
+
+// Error 4: Missing translation key
+void error_missing_key() {
+    i18n_init("lang", "en");
+    i18n_set_warn_missing(true);
+    
+    string result = _("NonExistentKey123");
+    
+    screen_reader_speak("""Error 4: Missing Translation Key.
+Code: underscore NonExistentKey123.
+Problem: This key does not exist in the .po file!
+Result: """ + result + """. The key itself is returned.
+Missing count: """ + i18n_missing_count() + """.
+Solution: Add the key to your .po file with msgid and msgstr,
+or use i18n_export_missing to export all missing translations.""", true);
+    
+    i18n_clear_missing();
+    i18n_set_warn_missing(false);
+}
+
+// Error 5: Wrong variable names
+void error_wrong_variables() {
+    i18n_init("lang", "en");
+    
+    string result1 = _f("Hello {name}", "username", "Ali");
+    string result2 = _f("Score: {score}", "scroe", "100");
+    
+    screen_reader_speak("""Error 5: Wrong Variable Names.
+First wrong code: _f Hello name, but passing username and Ali.
+Result: """ + result1 + """.
+Problem: Template uses name but we passed username!
+Second wrong code: _f Score score, but passing scroe with typo.
+Result: """ + result2 + """.
+Problem: Typo in variable name, scroe instead of score.
+Solution: Make sure variable names match exactly between template and function call.""", true);
+}
+
+// Error 6: Gender translation without separator
+void error_gender_format() {
+    i18n_init("lang", "ar");
+    
+    string result = _g("Hello", I18N_FEMALE);
+    
+    screen_reader_speak("""Error 6: Gender Format Error.
+Code: _g Hello with female gender.
+Problem: The Hello translation does not have a pipe separator!
+The translation is just marhaba, without male pipe female format.
+Result: """ + result + """. Returns the whole translation.
+Solution: In ar.po, use pipe to separate male and female forms.
+Example: msgstr male greeting pipe female greeting.
+Or use a dedicated key like gender_greeting.""", true);
+    
+    i18n_set_language("en");
+}
+
+// Error 7: Plural without all forms
+void error_plural_keys() {
+    i18n_init("lang", "ar");
+    
+    string result = _n(2, "missing_singular", "missing_dual", "missing_plural");
+    
+    screen_reader_speak("""Error 7: Missing Plural Forms.
+Code: _n with 2 items using missing keys.
+Problem: Forgot to add all plural forms in the .po file!
+Arabic requires 3 forms:
+Singular for 1 and 11 plus.
+Dual for 2.
+Plural for 0 and 3 through 10.
+Result: """ + result + """.
+Solution: Add all three msgid entries in ar.po:
+item for singular, items_dual for dual, items_plural for plural.""", true);
+    
+    i18n_set_language("en");
+}
+
+// Error 8: Warnings disabled
+void error_warnings_off() {
+    i18n_init("lang", "en");
+    i18n_set_warn_missing(false);
+    
+    string r1 = _("SilentMissingKey1");
+    string r2 = _("SilentMissingKey2");
+    string r3 = _("SilentMissingKey3");
+    
+    int missing = i18n_missing_count();
+    
+    screen_reader_speak("""Error 8: Warnings Disabled.
+Code: warn_missing set to false, then requesting 3 missing keys.
+Problem: 3 translations are missing but there is no warning!
+The developer will not know there is a problem.
+Missing count: """ + missing + """.
+Solution: Enable warnings during development with i18n_set_warn_missing true.
+Or use i18n_missing_count to check for problems.
+Or use i18n_export_missing to export all missing translations to a file.""", true);
+    
+    i18n_clear_missing();
+}
+
+// Correct Usage Example
+void show_correct_usage() {
+    i18n_clear();
+    
+    if (!i18n_init("lang", "en")) {
+        screen_reader_speak("Error: Failed to load translation files!", true);
+        return;
+    }
+    
+    i18n_set_warn_missing(true);
+    
+    string hello = _("Hello");
+    string goodbye = _("Goodbye");
+    string greeting = _f("Hello {name}", "name", "Hamad");
+    
+    i18n_set_language("ar");
+    string arabic_hello = _("Hello");
+    
+    string male_greeting = _g("gender_greeting", I18N_MALE);
+    string female_greeting = _g("gender_greeting", I18N_FEMALE);
+    
+    string five_coins = _np(5, "coin", "coins_dual", "coins_plural");
+    
+    int missing = i18n_missing_count();
+    
+    screen_reader_speak("""Correct Usage Example.
+Step 1: Initialize with i18n_init, passing folder and default language.
+Step 2: Enable warnings with i18n_set_warn_missing true.
+Step 3: Basic translation: Hello equals """ + arabic_hello + """.
+Step 4: With variables: Hello name equals """ + greeting + """.
+Step 5: Gender support: Male says """ + male_greeting.substr(0, 30) + """.
+Female says """ + female_greeting.substr(0, 30) + """.
+Step 6: Plural support: 5 coins equals """ + five_coins + """.
+Step 7: Missing translations count: """ + missing + """.
+This is how you use the i18n system correctly!""", true);
+    
+    i18n_set_language("en");
+    i18n_set_warn_missing(false);
+}

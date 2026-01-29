@@ -605,6 +605,10 @@ void i18n_set_warn_missing(bool enabled) {
     i18n_warn_missing = enabled;
 }
 
+bool i18n_get_warn_missing() {
+    return i18n_warn_missing;
+}
+
 /*
 Export missing translations to a PO file
 Creates: lang/missing_[language].po

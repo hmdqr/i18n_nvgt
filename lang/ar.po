@@ -168,3 +168,102 @@ msgstr "كتم الصوت"
 
 msgid "Unmute"
 msgstr "إلغاء كتم الصوت"
+
+# Gender Examples
+
+msgid "gender_greeting"
+msgstr "مرحباً أيها السيد، سعدنا بلقائك|مرحباً أيتها السيدة، سعدنا بلقائك"
+
+msgid "You won!"
+msgstr "لقد فزت، ممتاز أيها اللاعب!|لقد فزت، ممتازة أيتها اللاعبة!"
+
+msgid "You collected {item}"
+msgstr "أخذت {item}، أيها اللاعب|أخذت {item}، أيتها اللاعبة"
+
+# Plural Examples
+
+msgid "coin"
+msgstr "عملة"
+
+msgid "coins_dual"
+msgstr "عملتان"
+
+msgid "coins_plural"
+msgstr "عملات"
+
+# UI Translations
+
+msgid "Interactive Mode"
+msgstr "الوضع التفاعلي"
+
+msgid "interactive_mode_instructions"
+msgstr "مرحباً بك في الوضع التفاعلي.\n\n1-2: تغيير اللغة (1=الإنجليزية، 2=العربية)\n3: تفعيل/إيقاف تحذيرات الترجمات المفقودة\nT: عرض الترجمات\nV: عرض المتغيرات\nM: عرض الجنس - ذكر\nF: عرض الجنس - أنثى\nN: عرض الجمع العربي\nI: معلومات النظام\nR: إعادة الاختبارات\nEscape: خروج"
+
+msgid "Language changed to English"
+msgstr "تم تغيير اللغة إلى الإنجليزية"
+
+msgid "Language changed to Arabic"
+msgstr "تم تغيير اللغة إلى العربية"
+
+msgid "Warnings ON"
+msgstr "التحذيرات مفعلة"
+
+msgid "Warnings OFF"
+msgstr "التحذيرات معطلة"
+
+msgid "Missing Translation Warnings"
+msgstr "تحذيرات الترجمات المفقودة"
+
+msgid "System Info"
+msgstr "معلومات النظام"
+
+msgid "Current Language"
+msgstr "اللغة الحالية"
+
+msgid "Loaded Languages"
+msgstr "اللغات المحملة"
+
+msgid "Translation Count"
+msgstr "عدد الترجمات"
+
+msgid "Translation Demo"
+msgstr "عرض الترجمات"
+
+msgid "Variable Demo"
+msgstr "عرض المتغيرات"
+
+msgid "Gender Demo"
+msgstr "عرض الجنس"
+
+msgid "Male"
+msgstr "ذكر"
+
+msgid "Female"
+msgstr "أنثى"
+
+msgid "Greeting"
+msgstr "التحية"
+
+msgid "Win Message"
+msgstr "رسالة الفوز"
+
+msgid "Collected Message"
+msgstr "رسالة الحصول على العنصر"
+
+msgid "You collected sword"
+msgstr "أخذت السيف"
+
+msgid "Plural Demo"
+msgstr "عرض الجمع"
+
+msgid "Arabic Plural Rules"
+msgstr "قواعد الجمع العربي"
+
+msgid "singular for 1 and 11+"
+msgstr "مفرد لـ 1 و 11 فأكثر"
+
+msgid "dual for 2"
+msgstr "مثنى لـ 2"
+
+msgid "plural for 0 and 3-10"
+msgstr "جمع لـ 0 و 3 إلى 10"

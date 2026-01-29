@@ -1,5 +1,5 @@
 /*
-NVGT i18n - Offline Test Suite
+NVGT i18n - Test Suite
 Comprehensive test for the standalone i18n translation system.
 Tests all features: loading, translating, variables, context, and language switching.
 */
@@ -12,9 +12,9 @@ int tests_failed = 0;
 string[] failed_tests;
 
 void main() {
-    show_window("i18n Offline Test Suite");
+    show_window("i18n Test Suite");
     
-    alert("i18n Test Suite", "This will run all offline translation tests.\n\nPress Enter to start.");
+    alert("i18n Test Suite", "This will run all translation tests. \n\nPress ok  to start.");
     
     // Initialize
     if (!init_test_environment()) {
@@ -28,6 +28,9 @@ void main() {
     test_variable_substitution();
     test_context_translation();
     test_language_switching();
+    test_gender();
+    test_plural();
+    test_missing_export();
     test_edge_cases();
     test_performance();
     
@@ -205,6 +208,85 @@ void test_edge_cases() {
     assert_true("Unicode variable works", unicode_result.find("محمد") >= 0);
 }
 
+void test_gender() {
+    log("\n=== Testing Gender Support ===");
+    
+    i18n_set_language("ar");
+    
+    // Test 1: Male gender
+    string male_result = _g("gender_greeting", I18N_MALE);
+    assert_true("Male greeting contains السيد", male_result.find("السيد") >= 0);
+    
+    // Test 2: Female gender
+    string female_result = _g("gender_greeting", I18N_FEMALE);
+    assert_true("Female greeting contains السيدة", female_result.find("السيدة") >= 0);
+    
+    // Test 3: Gender with variable
+    string male_collect = _gf("You collected {item}", I18N_MALE, "item", "سيف");
+    assert_true("Male collect contains أيها اللاعب", male_collect.find("أيها اللاعب") >= 0);
+    
+    string female_collect = _gf("You collected {item}", I18N_FEMALE, "item", "سيف");
+    assert_true("Female collect contains أيتها اللاعبة", female_collect.find("أيتها اللاعبة") >= 0);
+    
+    // Test 4: Neutral defaults to male
+    string neutral_result = _g("You won!", I18N_NEUTRAL);
+    assert_true("Neutral uses male form", neutral_result.find("ممتاز") >= 0);
+    
+    i18n_set_language("en");
+}
+
+void test_plural() {
+    log("\n=== Testing Arabic Plural ===");
+    
+    i18n_set_language("ar");
+    
+    // Test 1: Singular (1)
+    string one = _n(1, "coin", "coins_dual", "coins_plural");
+    assert_equals("Count 1 = singular", one, "عملة");
+    
+    // Test 2: Dual (2)
+    string two = _n(2, "coin", "coins_dual", "coins_plural");
+    assert_equals("Count 2 = dual", two, "عملتان");
+    
+    // Test 3: Plural (3-10)
+    string five = _n(5, "coin", "coins_dual", "coins_plural");
+    assert_equals("Count 5 = plural", five, "عملات");
+    
+    // Test 4: Many (11+) uses singular
+    string fifteen = _n(15, "coin", "coins_dual", "coins_plural");
+    assert_equals("Count 15 = singular", fifteen, "عملة");
+    
+    // Test 5: Zero uses plural
+    string zero = _n(0, "coin", "coins_dual", "coins_plural");
+    assert_equals("Count 0 = plural", zero, "عملات");
+    
+    // Test 6: _np returns count + word
+    string np_result = _np(5, "coin", "coins_dual", "coins_plural");
+    assert_equals("_np format", np_result, "5 عملات");
+    
+    i18n_set_language("en");
+}
+
+void test_missing_export() {
+    log("\n=== Testing Missing Export ===");
+    
+    i18n_set_language("en");
+    i18n_set_warn_missing(true);
+    
+    // Generate some missing translations
+    _("ThisKeyDoesNotExist123");
+    _("AnotherMissingKey456", "some_context");
+    
+    // Test 1: Missing count
+    assert_true("Missing count > 0", i18n_missing_count() >= 2);
+    
+    // Test 2: Clear missing
+    i18n_clear_missing();
+    assert_equals("Clear missing works", i18n_missing_count(), 0);
+    
+    i18n_set_warn_missing(false);
+}
+
 void test_performance() {
     log("\n=== Testing Performance ===");
     
@@ -304,19 +386,13 @@ void show_results() {
     }
     
     string title = tests_failed == 0 ? "All Tests Passed!" : "Some Tests Failed";
-    alert(title, results);
+    screen_reader_speak(title+"... "+results);
 }
 
 // Interactive Mode
 
 void interactive_mode() {
-    alert("Interactive Mode", "Now entering interactive mode.\n\n" +
-        "1-2: Switch language (1=English, 2=Arabic)\n" +
-        "T: Show translation demo\n" +
-        "V: Show variable demo\n" +
-        "I: Show system info\n" +
-        "R: Re-run all tests\n" +
-        "Escape: Exit");
+    alert(_("Interactive Mode"), _("interactive_mode_instructions"));
     
     while (true) {
         wait(5);
@@ -326,17 +402,32 @@ void interactive_mode() {
         }
         else if (key_pressed(KEY_1)) {
             i18n_set_language("en");
-            screen_reader_speak("English", true);
+            screen_reader_speak(_("Language changed to English") + ". " + _("Hello") + ", " + _("Goodbye"));
         }
         else if (key_pressed(KEY_2)) {
             i18n_set_language("ar");
-            screen_reader_speak("Arabic", true);
+            screen_reader_speak(_("Language changed to Arabic") + ". " + _("Hello") + ", " + _("Goodbye"));
+        }
+        else if (key_pressed(KEY_3)) {
+            bool current = i18n_get_warn_missing();
+            i18n_set_warn_missing(!current);
+            string status = (!current) ? _("Warnings ON") : _("Warnings OFF");
+            screen_reader_speak(_("Missing Translation Warnings") + ": " + status);
         }
         else if (key_pressed(KEY_T)) {
             demo_translations();
         }
         else if (key_pressed(KEY_V)) {
             demo_variables();
+        }
+        else if (key_pressed(KEY_M)) {
+            demo_gender(I18N_MALE);
+        }
+        else if (key_pressed(KEY_F)) {
+            demo_gender(I18N_FEMALE);
+        }
+        else if (key_pressed(KEY_N)) {
+            demo_plural();
         }
         else if (key_pressed(KEY_I)) {
             show_info();
@@ -347,12 +438,22 @@ void interactive_mode() {
             tests_failed = 0;
             failed_tests.resize(0);
             
+            // Reset language to English for tests
+            i18n_set_language("en");
+            
+            // Intentional missing translation to demonstrate warning system
+            // Press 3 first to enable warnings and see this error
+            string intentional_error = _("THIS_KEY_DOES_NOT_EXIST_DEMO");
+            
             // Re-run tests
             test_initialization();
             test_basic_translation();
             test_variable_substitution();
             test_context_translation();
             test_language_switching();
+            test_gender();
+            test_plural();
+            test_missing_export();
             test_edge_cases();
             test_performance();
             
@@ -366,7 +467,7 @@ void interactive_mode() {
 void demo_translations() {
     string current = i18n_get_language();
     
-    string demo = "Current Language: " + current + "\n\n";
+    string demo = _("Current Language") + ": " + current + "\n\n";
     demo += "Hello = " + _("Hello") + "\n";
     demo += "Goodbye = " + _("Goodbye") + "\n";
     demo += "Yes = " + _("Yes") + "\n";
@@ -375,7 +476,7 @@ void demo_translations() {
     demo += "New Game = " + _("New Game") + "\n";
     demo += "Load Game = " + _("Load Game") + "\n";
     
-    alert("Translation Demo - " + current, demo);
+    screen_reader_speak(_("Translation Demo") + ": " + demo);
 }
 
 void demo_variables() {
@@ -400,14 +501,50 @@ void demo_variables() {
     vars.set("count", "3");
     demo += "   Result: " + _fd("You have {count} {item}", @vars) + "\n";
     
-    alert("Variable Demo", demo);
+    screen_reader_speak("Variable Demo"+ demo);
 }
 
 void show_info() {
-    string info = "i18n System Information\n\n";
-    info += "Current Language: " + i18n_get_language() + "\n";
-    info += "Loaded Languages: " + array_join(i18n_get_loaded_languages(), ", ") + "\n";
-    info += "Translation Count: " + i18n_count() + "\n";
+    string info = _("Current Language") + ": " + i18n_get_language() + "\n";
+    info += _("Loaded Languages") + ": " + array_join(i18n_get_loaded_languages(), ", ") + "\n";
+    info += _("Translation Count") + ": " + i18n_count() + "\n";
     
-    alert("System Info", info);
+    screen_reader_speak(_("System Info") + ": " + info);
+}
+
+void demo_gender(int gender) {
+    // Respect the user's currently selected language
+    string current_lang = i18n_get_language();
+    string item_name = (current_lang == "ar") ? "السيف" : "sword";
+    
+    string gender_name = (gender == I18N_MALE) ? _("Male") : _("Female");
+    
+    string demo = _("Gender Demo") + " - " + gender_name + "\n\n";
+    
+    demo += _("Greeting") + ":\n";
+    demo += _g("gender_greeting", gender) + "\n\n";
+    
+    demo += _("Win Message") + ":\n";
+    demo += _g("You won!", gender) + "\n\n";
+    
+    demo += _("Collected Message") + ":\n";
+    demo += _gf("You collected {item}", gender, "item", item_name) + "\n";
+    
+    screen_reader_speak(_("Gender Demo") + ": " + demo);
+}
+
+void demo_plural() {
+    // Respect the user's currently selected language
+    
+    string demo = _("Arabic Plural Rules") + "\n";
+    demo += _("singular for 1 and 11+") + ", " + _("dual for 2") + ", " + _("plural for 0 and 3-10") + "\n\n";
+    
+    demo += "0: " + _np(0, "coin", "coins_dual", "coins_plural") + "\n";
+    demo += "1: " + _np(1, "coin", "coins_dual", "coins_plural") + "\n";
+    demo += "2: " + _np(2, "coin", "coins_dual", "coins_plural") + "\n";
+    demo += "5: " + _np(5, "coin", "coins_dual", "coins_plural") + "\n";
+    demo += "10: " + _np(10, "coin", "coins_dual", "coins_plural") + "\n";
+    demo += "15: " + _np(15, "coin", "coins_dual", "coins_plural") + "\n";
+    
+    screen_reader_speak(_("Plural Demo") + ": " + demo);
 }

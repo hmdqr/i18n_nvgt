@@ -91,10 +91,10 @@ alert("", _gf("You collected {item}", player_gender, "item", "sword"));
 **PO file format for gender:**
 ```po
 msgid "You won!"
-msgstr "لقد فزتَ|لقد فزتِ"
+msgstr "لقد فزت، ممتاز أيها اللاعب!|لقد فزت، ممتازة أيتها اللاعبة!"
 
 msgid "You collected {item}"
-msgstr "لقد جمعتَ {item}|لقد جمعتِ {item}"
+msgstr "أخذت {item}، أيها اللاعب|أخذت {item}، أيتها اللاعبة"
 ```
 Use `|` to separate male|female forms.
 
@@ -284,21 +284,11 @@ msgstr "لعب"
 
 ```
 ├── i18n.nvgt           # Main translation system
-├── test.nvgt           # Test suite
+├── test.nvgt           # Test suite (AI generated)
+├── test-errors.nvgt    # Error handling demo (AI generated)
 └── lang/
     ├── en.po           # English translations
     └── ar.po           # Arabic translations
-```
-
-## Running Tests
-
-Run `test.nvgt` to verify everything works:
-
-```
-Tests Run: 32
-Passed: 32
-Failed: 0
-Success Rate: 100%
 ```
 
 ## How This Project Started
