@@ -58,6 +58,9 @@ void test_initialization() {
     log("\n=== Testing Initialization ===");
     
     // Test 1: Check default language
+    // NOTE: If you switched language in interactive mode (option 1) and then
+    // re-run tests (R), this will fail. This is expected behavior - the test
+    // checks that the current language matches the init language ("en").
     assert_equals("Default language", i18n_get_language(), "en");
     
     // Test 2: Check languages loaded
@@ -161,7 +164,7 @@ void test_language_switching() {
         string hello_ar = _("Hello");
         
         // Arabic should be different from English
-        assert_true("Arabic translation different", hello_ar != hello_en || hello_ar == "مرحبا");
+        assert_true("Arabic translation different", !hello_ar.empty() && hello_ar != hello_en);
         
         // Switch back
         i18n_set_language("en");

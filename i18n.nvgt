@@ -2,16 +2,16 @@
 NVGT i18n - Internationalization System (Offline Version)
 
 A complete translation system supporting PO files (gettext format)
-with context, variables, and runtime language switching.
+with context, variables, gender, pluralization, and runtime language switching.
 
 Author: HmdQr
-Version: 1.0.1
-Date: 2026-01-28
+Version: 1.1.0
+Date: 2026-01-29
 License: MIT
 
 Usage:
 
-#include "nvgt_i18n/i18n.nvgt"
+#include "i18n.nvgt"
 
 void main() {
     // Initialize the system
@@ -26,7 +26,9 @@ void main() {
     // Translation
     alert("", _("Hello"));                           // Simple translation
     alert("", _("Open", "door"));                    // Translation with context
-    alert("", _f("Hello {name}", "name", "Ahmed"));  // Translation with variable
+    alert("", _f("Hello {name}", "name", "Hamad"));  // Translation with variable
+    alert("", _g("You won!", I18N_MALE));            // Gender-aware translation
+    alert("", _np(5, "coin", "coins_dual", "coins")); // Plural with count
 }
 */
 
@@ -39,6 +41,14 @@ dictionary@ i18n_translations = dictionary();
 string[] i18n_loaded_languages;
 bool i18n_initialized = false;
 bool i18n_warn_missing = false;
+
+// Missing texts tracking
+dictionary@ i18n_missing_texts = dictionary();
+
+// Gender Constants
+const int I18N_NEUTRAL = 0;
+const int I18N_MALE = 1;
+const int I18N_FEMALE = 2;
 
 // Initialization
 
@@ -170,6 +180,10 @@ string _(string text, string context = "") {
     if (i18n_warn_missing && !text.empty()) {
         string ctx_info = context.empty() ? "" : " [" + context + "]";
         println("[i18n] Missing: \"" + text + "\"" + ctx_info + " (" + i18n_current_language + ")");
+        
+        // Track missing text for export
+        string missing_key = context.empty() ? text : context + "\x04" + text;
+        i18n_missing_texts.set(missing_key, i18n_current_language);
     }
     
     return text;
@@ -231,6 +245,87 @@ Translate with context (shorthand)
 */
 string _c(string context, string text) {
     return _(text, context);
+}
+
+/*
+Translate with gender support
+In PO file: msgstr "male text|female text"
+@param text: Text to translate
+@param gender: I18N_MALE, I18N_FEMALE, or I18N_NEUTRAL
+@return: Gender-appropriate translation
+*/
+string _g(string text, int gender = I18N_NEUTRAL) {
+    string translated = _(text);
+    
+    // Look for gender separator
+    int sep = translated.find("|");
+    if (sep >= 0) {
+        string male_text = translated.substr(0, sep);
+        string female_text = translated.substr(sep + 1);
+        
+        if (gender == I18N_FEMALE) {
+            return female_text;
+        }
+        return male_text;
+    }
+    
+    return translated;
+}
+
+/*
+Translate with gender and one variable
+*/
+string _gf(string text, int gender, string var_name, string var_value) {
+    string translated = _g(text, gender);
+    return i18n_replace_var(translated, var_name, var_value);
+}
+
+/*
+Translate with gender and two variables
+*/
+string _gf2(string text, int gender, string v1_name, string v1_value, string v2_name, string v2_value) {
+    string translated = _g(text, gender);
+    translated = i18n_replace_var(translated, v1_name, v1_value);
+    translated = i18n_replace_var(translated, v2_name, v2_value);
+    return translated;
+}
+
+/*
+Arabic plural support
+Arabic has 6 forms: zero, singular, dual (2), few (3-10), many (11+)
+In practice we use: singular, dual, plural
+
+@param count: The number
+@param singular: Key for singular form (1, or 11+)
+@param dual: Key for dual form (2)
+@param plural: Key for plural form (0, 3-10)
+@return: Appropriate translated word
+*/
+string _n(int count, string singular, string dual, string plural) {
+    string s = _(singular);
+    string d = _(dual);
+    string p = _(plural);
+    
+    if (count == 0) {
+        return p;  // zero uses plural
+    } else if (count == 1) {
+        return s;  // singular
+    } else if (count == 2) {
+        return d;  // dual
+    } else if (count >= 3 && count <= 10) {
+        return p;  // few (3-10) uses plural
+    } else {
+        return s;  // many (11+) uses singular in Arabic
+    }
+}
+
+/*
+Arabic plural with count prefix
+@return: "count word" (e.g., "5 coins")
+*/
+string _np(int count, string singular, string dual, string plural) {
+    string word = _n(count, singular, dual, plural);
+    return count + " " + word;
 }
 
 // Helper Functions
@@ -508,6 +603,66 @@ void i18n_clear() {
 
 void i18n_set_warn_missing(bool enabled) {
     i18n_warn_missing = enabled;
+}
+
+/*
+Export missing translations to a PO file
+Creates: lang/missing_[language].po
+@return: Number of missing translations exported
+*/
+int i18n_export_missing() {
+    string[]@ keys = i18n_missing_texts.get_keys();
+    if (@keys == null || keys.length() == 0) {
+        return 0;
+    }
+    
+    string filepath = i18n_lang_path + "/missing_" + i18n_current_language + ".po";
+    
+    file f;
+    if (!f.open(filepath, "wb")) {
+        return -1;
+    }
+    
+    f.write("# Missing translations for: " + i18n_current_language + "\n");
+    f.write("# Total: " + keys.length() + " texts\n");
+    f.write("# Add these to your " + i18n_current_language + ".po file\n\n");
+    
+    for (uint i = 0; i < keys.length(); i++) {
+        string key = keys[i];
+        
+        // Check for context separator
+        int sep = key.find("\x04");
+        if (sep >= 0) {
+            string ctx = key.substr(0, sep);
+            string msgid = key.substr(sep + 1);
+            f.write("msgctxt \"" + ctx + "\"\n");
+            f.write("msgid \"" + msgid + "\"\n");
+        } else {
+            f.write("msgid \"" + key + "\"\n");
+        }
+        f.write("msgstr \"\"\n\n");
+    }
+    
+    f.close();
+    
+    println("[i18n] Exported " + keys.length() + " missing translations to: " + filepath);
+    return keys.length();
+}
+
+/*
+Get count of missing translations tracked
+*/
+int i18n_missing_count() {
+    string[]@ keys = i18n_missing_texts.get_keys();
+    if (@keys == null) return 0;
+    return keys.length();
+}
+
+/*
+Clear tracked missing translations
+*/
+void i18n_clear_missing() {
+    @i18n_missing_texts = dictionary();
 }
 
 int i18n_count(string lang_code = "") {

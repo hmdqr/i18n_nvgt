@@ -8,6 +8,9 @@ A lightweight translation system for NVGT games. Supports PO files, context-base
 - ✅ Context-based translations (same word, different meanings)
 - ✅ Variable substitution with `{placeholder}` syntax
 - ✅ Runtime language switching
+- ✅ Gender support (male/female text variations)
+- ✅ Arabic plural support (singular/dual/plural)
+- ✅ Missing translation tracking and export
 - ✅ Lightweight and easy to integrate
 
 ## Installation
@@ -35,7 +38,7 @@ void main() {
     
     // Switch language
     i18n_set_language("ar");
-    alert("", _("Hello")); // Shows: مرحبا
+    alert("", _("Hello")); // Shows: مرحباً
 }
 ```
 
@@ -55,7 +58,7 @@ string save_file = _("Save", "file");    // Output: "Save"
 string save_hero = _("Save", "rescue");  // Output: "Rescue"
 
 // Translation with 1 variable
-string msg1 = _f("Hello {name}", "name", "Ahmed");
+string msg1 = _f("Hello {name}", "name", "Hamad");
 
 // Translation with 2 variables
 string msg2 = _f2("Score: {score} / {max}", "score", "85", "max", "100");
@@ -68,6 +71,112 @@ dictionary@ vars = dictionary();
 vars.set("name", "Sara");
 vars.set("city", "Dubai");
 string msg4 = _fd("Hello {name} from {city}", @vars);
+```
+
+## Gender Support
+
+For languages like Arabic where verbs change based on gender:
+
+```nvgt
+// Set player gender (store in your game settings)
+int player_gender = I18N_MALE;  // or I18N_FEMALE
+
+// Gender-aware translation
+alert("", _g("You won!", player_gender));
+
+// Gender with variable
+alert("", _gf("You collected {item}", player_gender, "item", "sword"));
+```
+
+**PO file format for gender:**
+```po
+msgid "You won!"
+msgstr "لقد فزتَ|لقد فزتِ"
+
+msgid "You collected {item}"
+msgstr "لقد جمعتَ {item}|لقد جمعتِ {item}"
+```
+Use `|` to separate male|female forms.
+
+## Arabic Plural Support
+
+Arabic has complex plural rules. This system handles:
+- **1**: singular (مفرد)
+- **2**: dual (مثنى)
+- **3-10**: plural (جمع)
+- **11+**: singular with number
+
+```nvgt
+// Returns just the word
+string word = _n(coins, "coin", "coins_dual", "coins_plural");
+
+// Returns "count word" format
+alert("", _np(0, "coin", "coins_dual", "coins_plural"));   // "0 عملات"
+alert("", _np(1, "coin", "coins_dual", "coins_plural"));   // "1 عملة"
+alert("", _np(2, "coin", "coins_dual", "coins_plural"));   // "2 عملتان"
+alert("", _np(5, "coin", "coins_dual", "coins_plural"));   // "5 عملات"
+alert("", _np(15, "coin", "coins_dual", "coins_plural"));  // "15 عملة"
+```
+
+**PO file:**
+```po
+msgid "coin"
+msgstr "عملة"
+
+msgid "coins_dual"
+msgstr "عملتان"
+
+msgid "coins_plural"
+msgstr "عملات"
+```
+
+## Arabic Examples (Command vs Action)
+
+Arabic is used in the examples below because it is the author's native language, and it is a great example of why **context** matters.
+
+In Arabic (and many other languages), the correct phrasing depends on whether the text is:
+
+- **A command / prompt to the player** (imperative verb):
+    - "Open the door." → "افتح الباب."
+    - "Close the tap." → "أغلق الصنبور."
+- **An action label / menu-style action name** (noun/masdar):
+    - "Open door" → "فتح الباب"
+    - "Close tap" → "إغلاق الصنبور"
+
+### Recommended Approach
+
+Store **full sentences** as keys for prompts (instead of building sentences from single words) to keep grammar natural.
+
+If you want to reuse the same English word with different meanings/styles, use `msgctxt`:
+
+```nvgt
+string cmd = _("Open", "command"); // e.g., "افتح"
+string act = _("Open", "action");  // e.g., "فتح"
+```
+
+```po
+msgctxt "command"
+msgid "Open"
+msgstr "افتح"
+
+msgctxt "action"
+msgid "Open"
+msgstr "فتح"
+```
+
+## Missing Translation Tracking
+
+```nvgt
+void main() {
+    i18n_init("lang", "ar");
+    i18n_set_warn_missing(true);  // Enable tracking
+    
+    // ... your game runs ...
+    // Missing translations are logged to console
+    
+    // Before exit, export all missing to a file
+    i18n_export_missing();  // Creates: lang/missing_ar.po
+}
 ```
 
 ## PO File Format
@@ -99,10 +208,10 @@ msgstr "Play"
 
 ```po
 msgid "Hello"
-msgstr "مرحبا"
+msgstr "مرحباً"
 
 msgid "Hello {name}"
-msgstr "مرحبا {name}"
+msgstr "مرحباً {name}"
 
 msgid "Goodbye"
 msgstr "مع السلامة"
@@ -140,6 +249,21 @@ msgstr "لعب"
 | `_f3(text, v1, val1, v2, val2, v3, val3)` | Translate with 3 variables |
 | `_fd(text, dict)` | Translate with dictionary of variables |
 
+### Gender Functions
+
+| Function | Description |
+|----------|-------------|
+| `_g(text, gender)` | Translate with gender (I18N_MALE, I18N_FEMALE, I18N_NEUTRAL) |
+| `_gf(text, gender, var, val)` | Gender translation with 1 variable |
+| `_gf2(text, gender, v1, val1, v2, val2)` | Gender translation with 2 variables |
+
+### Plural Functions
+
+| Function | Description |
+|----------|-------------|
+| `_n(count, singular, dual, plural)` | Get plural form based on count (Arabic rules) |
+| `_np(count, singular, dual, plural)` | Get "count word" format |
+
 ### Utility Functions
 
 | Function | Description |
@@ -151,7 +275,10 @@ msgstr "لعب"
 | `i18n_get_keys()` | Get all translation keys for current language |
 | `i18n_get_keys(lang)` | Get all translation keys for specific language |
 | `i18n_clear()` | Clear all loaded translations and reset system |
-| `i18n_set_warn_missing(enabled)` | Enable/disable warnings for missing translations (prints to console) |
+| `i18n_set_warn_missing(enabled)` | Enable/disable tracking of missing translations |
+| `i18n_export_missing()` | Export missing translations to PO file |
+| `i18n_missing_count()` | Get count of tracked missing translations |
+| `i18n_clear_missing()` | Clear tracked missing translations |
 
 ## Files
 

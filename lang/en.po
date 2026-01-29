@@ -133,6 +133,12 @@ msgstr "Player {name} left"
 msgid "Start Game"
 msgstr "Start Game"
 
+msgid "New Game"
+msgstr "New Game"
+
+msgid "Load Game"
+msgstr "Load Game"
+
 msgid "Options"
 msgstr "Options"
 

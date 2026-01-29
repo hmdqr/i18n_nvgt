@@ -10,16 +10,16 @@ msgstr ""
 # Basic Greetings
 
 msgid "Hello"
-msgstr "مرحبا"
+msgstr "مرحباً"
 
 msgid "Hello {name}"
-msgstr "مرحبا {name}"
+msgstr "مرحباً {name}"
 
 msgid "Hello {name}, age {age}"
-msgstr "مرحبا {name}، عمرك {age}"
+msgstr "مرحباً {name}، عمرك {age}"
 
 msgid "Hello {name} from {city}"
-msgstr "مرحبا {name} من {city}"
+msgstr "مرحباً {name} من {city}"
 
 msgid "Goodbye"
 msgstr "مع السلامة"
@@ -64,7 +64,7 @@ msgstr "حفظ"
 
 msgctxt "rescue"
 msgid "Save"
-msgstr "إنقاذ"
+msgstr "أنقذ"
 
 # Common Actions
 
@@ -134,6 +134,12 @@ msgstr "غادر اللاعب {name}"
 msgid "Start Game"
 msgstr "بدء اللعبة"
 
+msgid "New Game"
+msgstr "لعبة جديدة"
+
+msgid "Load Game"
+msgstr "تحميل اللعبة"
+
 msgid "Options"
 msgstr "الخيارات"
 
@@ -161,4 +167,4 @@ msgid "Mute"
 msgstr "كتم الصوت"
 
 msgid "Unmute"
-msgstr "تشغيل الصوت"
+msgstr "إلغاء كتم الصوت"
