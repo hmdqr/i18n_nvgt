@@ -41,6 +41,30 @@ msgctxt "file"
 msgid "Close"
 msgstr "Close File"
 
+msgctxt "music"
+msgid "Play"
+msgstr "Start"
+
+msgctxt "game"
+msgid "Play"
+msgstr "Play"
+
+msgctxt "navigation"
+msgid "Back"
+msgstr "Go Back"
+
+msgctxt "body"
+msgid "Back"
+msgstr "Back"
+
+msgctxt "file"
+msgid "Save"
+msgstr "Save"
+
+msgctxt "rescue"
+msgid "Save"
+msgstr "Rescue"
+
 # Common Actions
 
 msgid "Save"
@@ -88,6 +112,12 @@ msgstr "Level {level}"
 
 msgid "Score: {score}"
 msgstr "Score: {score}"
+
+msgid "Score: {score} / {max}"
+msgstr "Score: {score} / {max}"
+
+msgid "Player {name} at ({x},{y})"
+msgstr "Player {name} at ({x},{y})"
 
 msgid "Time remaining: {time}"
 msgstr "Time remaining: {time}"

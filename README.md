@@ -118,6 +118,8 @@ msgstr "لعب"
 
 ## API Reference
 
+### Core Functions
+
 | Function | Description |
 |----------|-------------|
 | `i18n_init(path, lang)` | Initialize the system with language folder and default language |
@@ -125,21 +127,37 @@ msgstr "لعب"
 | `i18n_set_language(lang)` | Switch to a different language |
 | `i18n_get_language()` | Get current language code |
 | `i18n_get_loaded_languages()` | Get array of all loaded language codes |
+
+### Translation Functions
+
+| Function | Description |
+|----------|-------------|
 | `_(text)` | Translate text |
 | `_(text, context)` | Translate text with context |
+| `_c(context, text)` | Translate with context (alternative syntax) |
 | `_f(text, var, val)` | Translate with 1 variable |
 | `_f2(text, v1, val1, v2, val2)` | Translate with 2 variables |
 | `_f3(text, v1, val1, v2, val2, v3, val3)` | Translate with 3 variables |
 | `_fd(text, dict)` | Translate with dictionary of variables |
+
+### Utility Functions
+
+| Function | Description |
+|----------|-------------|
 | `i18n_has(text)` | Check if translation exists |
-| `i18n_count()` | Get total translation count |
+| `i18n_has(text, context)` | Check if translation with context exists |
+| `i18n_count()` | Get total translation count for current language |
+| `i18n_count(lang)` | Get translation count for specific language |
+| `i18n_get_keys()` | Get all translation keys for current language |
+| `i18n_get_keys(lang)` | Get all translation keys for specific language |
+| `i18n_clear()` | Clear all loaded translations and reset system |
+| `i18n_set_warn_missing(enabled)` | Enable/disable warnings for missing translations (prints to console) |
 
 ## Files
 
 ```
 ├── i18n.nvgt           # Main translation system
-├── example.nvgt        # Simple usage example
-├── offline-test.nvgt   # Test suite (32 tests)
+├── test.nvgt           # Test suite
 └── lang/
     ├── en.po           # English translations
     └── ar.po           # Arabic translations
@@ -147,7 +165,7 @@ msgstr "لعب"
 
 ## Running Tests
 
-Run `offline-test.nvgt` to verify everything works:
+Run `test.nvgt` to verify everything works:
 
 ```
 Tests Run: 32

@@ -42,6 +42,30 @@ msgctxt "file"
 msgid "Close"
 msgstr "إغلاق ملف"
 
+msgctxt "music"
+msgid "Play"
+msgstr "تشغيل"
+
+msgctxt "game"
+msgid "Play"
+msgstr "لعب"
+
+msgctxt "navigation"
+msgid "Back"
+msgstr "رجوع"
+
+msgctxt "body"
+msgid "Back"
+msgstr "الظهر"
+
+msgctxt "file"
+msgid "Save"
+msgstr "حفظ"
+
+msgctxt "rescue"
+msgid "Save"
+msgstr "إنقاذ"
+
 # Common Actions
 
 msgid "Save"
@@ -89,6 +113,12 @@ msgstr "المستوى {level}"
 
 msgid "Score: {score}"
 msgstr "النقاط: {score}"
+
+msgid "Score: {score} / {max}"
+msgstr "النقاط: {score} / {max}"
+
+msgid "Player {name} at ({x},{y})"
+msgstr "اللاعب {name} في ({x},{y})"
 
 msgid "Time remaining: {time}"
 msgstr "الوقت المتبقي: {time}"

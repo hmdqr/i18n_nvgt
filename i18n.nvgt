@@ -38,8 +38,7 @@ string i18n_lang_path = "lang";
 dictionary@ i18n_translations = dictionary();
 string[] i18n_loaded_languages;
 bool i18n_initialized = false;
-bool i18n_debug_mode = false;
-bool i18n_warn_missing = true;
+bool i18n_warn_missing = false;
 
 // Initialization
 
@@ -165,6 +164,12 @@ string _(string text, string context = "") {
         if (!result.empty()) {
             return result;
         }
+    }
+    
+    // Warn about missing translation
+    if (i18n_warn_missing && !text.empty()) {
+        string ctx_info = context.empty() ? "" : " [" + context + "]";
+        println("[i18n] Missing: \"" + text + "\"" + ctx_info + " (" + i18n_current_language + ")");
     }
     
     return text;
@@ -499,10 +504,6 @@ void i18n_clear() {
     @i18n_translations = dictionary();
     i18n_loaded_languages.resize(0);
     i18n_initialized = false;
-}
-
-void i18n_set_debug(bool enabled) {
-    i18n_debug_mode = enabled;
 }
 
 void i18n_set_warn_missing(bool enabled) {
