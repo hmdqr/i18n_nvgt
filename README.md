@@ -174,6 +174,16 @@ Failed: 0
 Success Rate: 100%
 ```
 
+## How This Project Started
+
+I was working on a game in Arabic, and after many lines of code, I thought: "How can I translate this to English?"
+
+From that moment, the i18n project was born — and it works great with my game.
+
+Yes, there might be some bad practices or unusual code patterns — but this is what I came up with after a lot of thinking. As a foundation, you can rely on it and modify it freely.
+
+Pull requests are very welcome! I'd be happy to receive any contributions. Thank you in advance.
+
 ## License
 
 MIT
