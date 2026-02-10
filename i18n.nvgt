@@ -396,8 +396,8 @@ string i18n_read_file(string path) {
 
 dictionary@ i18n_parse_po(string content) {
     dictionary@ result = dictionary();
-    
-    string[]@ lines = content.split("\n");
+    content = content.replace("\r", "");
+    string[] lines = content.split("\n", true, true);
     
     if (@lines == null || lines.length() == 0) {
         return result;
